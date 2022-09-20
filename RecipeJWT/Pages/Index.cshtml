@@ -1,0 +1,804 @@
+﻿@page
+@model IndexModel
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+	ViewData["Title"] = "Yumyums";
+}
+
+
+@* Register *@
+<div x-show="$store.tab == 'register'"
+	 x-data="{username: '', password: ''}">
+	<form x-on:submit.prevent="await register(username, password);">
+		<div class="container d-flex flex-column align-items-center justify-content-center ">
+			<div class="card my-5 col-6">
+				<div class="card-body">
+					<h5 class="card-title">Register</h5>
+					<div class="card-text">
+						<div class="mb-3 row">
+							<label for="registerUsername" class="col-sm-3 col-form-label">Username</label>
+							<div class="col-sm-9">
+								<input class="form-control" id="registerUsername" x-model="username" required>
+							</div>
+						</div>
+						<div class="mb-3 row">
+							<label for="registerPassword" class="col-sm-3 col-form-label">Password</label>
+							<div class="col-sm-9">
+								<input type="password" class="form-control" id="registerPassword" x-model="password" required>
+							</div>
+						</div>
+					</div>
+					<button class="btn btn-primary float-end" type="submit">register</button>
+				</div>
+			</div>
+			<a href="#" x-on:click.prevent="$store.tab = 'login'">
+				Already have an account?
+			</a>
+		</div>
+	</form>
+</div>
+
+@* Login *@
+<div x-show="$store.tab == 'login'"
+	 x-data="{username: '', password: ''}">
+	<form x-on:submit.prevent="await login(username, password);">
+		<div class="container d-flex flex-column align-items-center justify-content-center ">
+			<div class="card my-5 col-6">
+				<div class="card-body">
+					<h5 class="card-title">Login</h5>
+					<div class="card-text">
+						<div class="mb-3 row">
+							<label for="loginUsername" class="col-sm-3 col-form-label">Username</label>
+							<div class="col-sm-9">
+								<input class="form-control" id="loginUsername" x-model="username" required>
+							</div>
+						</div>
+						<div class="mb-3 row">
+							<label for="loginPassword" class="col-sm-3 col-form-label">Password</label>
+							<div class="col-sm-9">
+								<input type="password" class="form-control" id="loginPassword" x-model="password" required>
+							</div>
+						</div>
+					</div>
+					<button class="btn btn-primary float-end" type="submit">login</button>
+				</div>
+			</div>
+			<a href="#" x-on:click.prevent="$store.tab = 'register'">
+				Don't have an account?
+			</a>
+		</div>
+	</form>
+</div>
+
+@* Recipes Tab *@
+<div x-show="$store.tab == 'recipes'">
+	<div class="container d-flex justify-content-between align-items-center my-4">
+		<h2>All Recipes</h2>
+		<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createRecipeModal">
+			Add a Recipe
+		</button>
+	</div>
+
+	@* Recipe Cards *@
+	<div x-data="{recipes: []}"
+		 x-effect="recipes = await $store.recipes;"
+		 x-cloak
+		 class="row row-cols-1 row-cols-xl-2 g-4 pb-5">
+		<template x-for="recipe in recipes">
+			<div class="col">
+				<div class="card">
+					<div class="card-body">
+
+						<h5 class="card-title text-center" x-text="recipe.title"></h5>
+
+						<template x-for="category in recipe.categories">
+							<span class="badge bg-success mb-2 mx-1" x-text="category"></span>
+						</template>
+
+						<div class="accordion">
+
+							@* Ingredients *@
+							<div class="accordion-item">
+								<h2 class="accordion-header">
+									<button x-data class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#Ingredients' + recipe.id" aria-expanded="true" :aria-controls="'Ingredients' + recipe.id">
+										Ingredients
+									</button>
+								</h2>
+								<div x-data :id="'Ingredients' + recipe.id" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingOne">
+									<div class="accordion-body">
+										<ul>
+											<template x-for="ingredient in recipe.ingredients">
+
+												<li x-text="ingredient"></li>
+
+											</template>
+										</ul>
+									</div>
+								</div>
+							</div>
+
+							@* Instructions *@
+							<div class="accordion-item">
+								<h2 class="accordion-header">
+									<button x-data class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#Instructions' + recipe.id" aria-expanded="true" :aria-controls="'Instructions' + recipe.id">
+										Instructions
+									</button>
+								</h2>
+								<div x-data :id="'Instructions' + recipe.id" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingOne">
+									<div class="accordion-body">
+										<ul>
+											<template x-for="instruction in recipe.instructions">
+
+												<li x-text="instruction"></li>
+
+											</template>
+										</ul>
+									</div>
+								</div>
+							</div>
+
+						</div>
+
+						@* Buttons *@
+						<div class="text-center mt-3">
+							<div class="btn-group">
+								<button class="btn btn-primary" data-bs-toggle="modal" :data-bs-target="'#editRecipeModal' + recipe.id">
+									<i class="bi bi-pencil-square"></i>
+								</button>
+								<button class="btn btn-danger" data-bs-toggle="modal" :data-bs-target="'#DeleteModal' + recipe.id">
+									<i class="bi bi-trash"></i>
+								</button>
+							</div>
+						</div>
+
+						@* Delete Modal *@
+						<div class="modal fade" :id=" 'DeleteModal'+recipe.id " tabindex="-1">
+							<div class="modal-dialog">
+								<div class="modal-content text-center">
+									<form x-on:submit.prevent="await deleteRecipe(recipe); $store.recipes = await getRecipes();">
+										<div class="modal-header">
+											<h5 class="modal-title">Are you sure you want to delete this recipe?</h5>
+											<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+										</div>
+										<div class="modal-body">
+											<dl class="row">
+												<dt>
+													Title
+												</dt>
+												<dd x-html="recipe.title">
+												</dd>
+											</dl>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+											<button type="submit" class="btn btn-danger" data-bs-dismiss="modal">Delete Recipe</button>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+
+						@* Edit Recipe Modal *@
+						<div class="modal fade" :id="'editRecipeModal' + recipe.id" tabindex="-1">
+							<div class="modal-dialog modal-lg">
+								<div class="modal-content">
+									<form x-on:submit.prevent="await putRecipe(formatRecipe(recipe)); $store.recipes = await getRecipes();"
+										  x-data="{recipe: {id: recipe.id, title: recipe.title, ingredients: recipe.ingredients.join('\n'), instructions: recipe.instructions.join('\n'), categories: recipe.categories}, availablecategories: []}"
+										  x-effect="availablecategories = await $store.categories; ">
+										<div class="modal-header">
+											<h5 class="modal-title">Recipe Details</h5>
+											<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+										</div>
+										<div class="modal-body">
+
+											<div class="my-3 row">
+												<label :for="'editRecipeTitle' + recipe.id" class="col-2 col-form-label">Title</label>
+												<div class="col-7">
+													<input :id="'editRecipeTitle' + recipe.id" x-model="recipe.title" class="form-control" required />
+												</div>
+											</div>
+
+											<div class="my-3 row">
+												<label :for="'editRecipeIngredients' + recipe.id" class="col-form-label col-2">Ingredients</label>
+												<div class="col-7">
+													<textarea class="form-control" x-model="recipe.ingredients" :id="'editRecipeIngredients' + recipe.id" rows="5" placeholder="enter every ingredient on a separate line"></textarea>
+												</div>
+											</div>
+
+											<div class="my-3 row">
+												<label :for="'editRecipeInstructions' + recipe.id" class="col-form-label col-2">Instructions</label>
+												<div class="col-7">
+													<textarea class="form-control" x-model="recipe.instructions" :id="'editRecipeInstructions' + recipe.id" rows="5" placeholder="enter every instruction on a separate line"></textarea>
+												</div>
+											</div>
+
+											<div class="my-3 row">
+												<label for="editRecipeCategories" class="col-form-label col-2 ">Categories</label>
+												<div class="col-7">
+													<template x-for="category in availablecategories">
+														<div>
+															<input :id="'category'+ category + recipe.id" type="checkbox" :value="category" x-model="recipe.categories">
+															<label :for="'category'+ category + recipe.id" x-text="category"></label>
+															<br />
+														</div>
+													</template>
+												</div>
+											</div>
+										</div>
+										<div class="modal-footer">
+											<button type="submit" class="btn btn-primary">
+												edit recipe
+											</button>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+			</div>
+		</template>
+	</div>
+</div>
+
+@* Category Tab *@
+<div x-show="$store.tab == 'categories'">
+	<div class="container d-flex justify-content-between align-items-center my-4">
+		<h2>All Categories</h2>
+		<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+			Add a Category
+		</button>
+	</div>
+
+	@* Category Cards *@
+	<div class="row row-cols-auto justify-content-center g-4 mx-5"
+		 x-data="{ categories: []}"
+		 x-effect="categories = await $store.categories;"
+		 x-cloak>
+
+		<template x-for="category in categories">
+			<div class="col">
+				<div class="card text-center">
+					<div class="card-body">
+						<h5 class="card-title" x-text="category"></h5>
+						<div class="btn-group">
+							<button class="btn btn-primary" data-bs-toggle="modal" :data-bs-target="'#editCategoryModal' + category.replace(/\s/g, '');">
+								<i class="bi bi-pencil-square"></i>
+							</button>
+							<button class="btn btn-danger" data-bs-toggle="modal" :data-bs-target="'#deleteCategoryModal' + category.replace(/\s/g, '');">
+								<i class="bi bi-trash"></i>
+							</button>
+						</div>
+					</div>
+
+					@* Edit Category Modal *@
+					<div class="modal fade" :id="'editCategoryModal' + category.replace(/\s/g, '');" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<form x-on:submit.prevent="await putCategory(oldCategory, editedCategory); await updateDB();"
+									  x-data="{oldCategory: '', editedCategory: ''}"
+									  x-effect="oldCategory=category; editedCategory=category;">
+									<div class="modal-header">
+										<h5 class="modal-title" id="editCategoryModalLabel">What is the new category name?</h5>
+										<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+									</div>
+									<div class="modal-body">
+										<div class="my-3 row">
+											<label :for="'editCategoryTitle' + category.replace(/\s/g, '');" class="col-2 col-form-label">Title</label>
+											<div class="col-10">
+												<input :id="'editCategoryTitle' + category.replace(/\s/g, '');" x-model="editedCategory" class="form-control" required />
+											</div>
+										</div>
+									</div>
+									<div class="modal-footer">
+										<button type="submit" class="btn btn-primary">
+											Edit Category
+										</button>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+
+					@* Delete Category Modal *@
+					<div class="modal fade" :id="'deleteCategoryModal' + category.replace(/\s/g, '');" tabindex="-1" aria-labelledby="deleteCategoryModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<form x-on:submit.prevent="await deleteCategory(modalCategory); $el.reset(); await updateDB();"
+									  x-data="{modalCategory: ''}"
+									  x-effect="modalCategory = category">
+									<div class="modal-header">
+										<h5 class="modal-title" id="deleteCategoryModalLabel">Are you sure you want to delete this category?</h5>
+										<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+									</div>
+									<div class="modal-body">
+										<dl class="row">
+											<dt>
+												Category
+											</dt>
+											<dd x-html="modalCategory">
+											</dd>
+										</dl>
+									</div>
+									<div class="modal-footer">
+										<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+										<button type="submit" class="btn btn-danger" data-bs-dismiss="modal">
+											Delete Category
+										</button>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</template>
+
+	</div>
+</div>
+
+@* Add Recipe Modal *@
+<div class="modal fade" id="createRecipeModal" tabindex="-1" aria-labelledby="createRecipeModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<form x-on:submit.prevent="await postRecipe(formatRecipe(recipe)); $el.reset(); await updateDB();"
+				  x-data="{recipe: {title: '', ingredients: '', instructions: '', categories:[]}, availablecategories: ''}"
+				  x-effect="availablecategories = await $store.categories">
+				<div class="modal-header">
+					<h5 class="modal-title" id="createRecipeModalLabel">What is the recipe like?</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+
+					<div class="my-3 row">
+						<label for="createRecipeTitle" class="col-2 col-form-label">Title</label>
+						<div class="col-7">
+							<input id="createRecipeTitle" x-model="recipe.title" class="form-control" required />
+						</div>
+					</div>
+
+					<div class="my-3 row">
+						<label for="createRecipeIngredients" class="col-form-label col-2">Ingredients</label>
+						<div class="col-7">
+							<textarea class="form-control" x-model="recipe.ingredients" id="createRecipeIngredients" rows="5" placeholder="enter every ingredient on a separate line"></textarea>
+						</div>
+					</div>
+
+					<div class="my-3 row">
+						<label for="createRecipeInstructions" class="col-form-label col-2">Instructions</label>
+						<div class="col-7">
+							<textarea class="form-control" x-model="recipe.instructions" id="createRecipeInstructions" rows="5" placeholder="enter every instruction on a separate line"></textarea>
+						</div>
+					</div>
+
+					<div class="my-3 row">
+						<label for="createRecipeCategories" class="col-form-label col-2 ">Categories</label>
+						<div class="col-7">
+							<template x-for="category in availablecategories">
+								<div>
+									<input :id="'category'+ category + recipe.id" type="checkbox" :value="category" x-model="recipe.categories">
+									<label :for="'category'+ category + recipe.id" x-text="category"></label>
+									<br />
+								</div>
+							</template>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="submit" class="btn btn-primary">
+						Create recipe
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+@* Add Category Modal *@
+<div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<form x-on:submit.prevent="await postCategory(category); $el.reset(); category = ''; await updateDB();"
+				  x-data="{category: ''}">
+				<div class="modal-header">
+					<h5 class="modal-title" id="createCategoryModalLabel">What is the new category</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="my-3 row">
+						<label for="createCategoryTitle" class="col-2 col-form-label">Title</label>
+						<div class="col-10">
+							<input id="createCategoryTitle" x-model="category" class="form-control" required />
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="submit" class="btn btn-primary">
+						Create Category
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	const baseUrl = '@Configuration["BaseUrl"]';
+	document.addEventListener('alpine:init', () => {
+		Alpine.store('jwt');
+		Alpine.store('xsrfToken');
+		Alpine.store('recipes');
+		Alpine.store('categories');
+		Alpine.store('tab', 'login');
+	});
+	async function register(username, password) {
+		try {
+			let response = await fetch(new URL('/register', baseUrl).toString(), {
+				method: 'POST',
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					'name': username,
+					'password': password
+				})
+			});
+			let jwt = await response.json();
+			Alpine.store('jwt', jwt);
+			Alpine.store('xsrfToken', await getToken());
+			await updateDB();
+			Alpine.store('tab', 'recipes');
+			Swal.fire({
+				text: `Successfully registered`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'success',
+				timer: 1700
+			});
+		}
+		catch (error) {
+			Swal.fire({
+				text: `Failed to login`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'error',
+				timer: 1700
+			});
+		}
+	}
+	async function login(username, password) {
+		try {
+			let response = await fetch(new URL('/login', baseUrl).toString(), {
+				method: 'POST',
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					'name': username,
+					'password': password
+				})
+			});
+			let jwt = await response.json();
+			Alpine.store('jwt', jwt);
+			Alpine.store('xsrfToken', await getToken());
+			await updateDB();
+			Alpine.store('tab', 'recipes');
+			Swal.fire({
+				text: `Successfully logged`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'success',
+				timer: 1700
+			});
+		}
+		catch (error) {
+			Swal.fire({
+				text: `Failed to login`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'error',
+				timer: 1700
+			});
+		}
+	}
+	async function refresh() {
+		let response = await fetch(new URL('/refresh', baseUrl).toString(), {
+			method: 'POST',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(Alpine.store('jwt'))
+		});
+		if (!response.ok) {
+			throw 'Can not refresh';
+		}
+		let jwt = await response.json();
+		Alpine.store('jwt', jwt);
+		Alpine.store('xsrfToken', await getToken());
+	}
+	async function updateDB() {
+		Alpine.store('recipes', await getRecipes());
+		Alpine.store('categories', await getCategories());
+	}
+	async function getToken() {
+		let response = await fetch(new URL('/antiforgery/token', baseUrl).toString(), {
+			method: "GET",
+			headers: {
+				'Authorization': 'Bearer ' + Alpine.store('jwt').token
+			},
+			credentials: 'include'
+		});
+		if (response.ok) {
+			return document.cookie
+				.split("; ")
+				.find(row => row.startsWith("XSRF-TOKEN="))
+				.split("=")[1];
+		}
+	}
+	async function getRecipes() {
+		let response = await fetch(new URL('/recipes', baseUrl).toString(), {
+			headers: {
+				'Content-Type': 'application/json',
+				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
+				'Authorization': 'Bearer ' + Alpine.store('jwt').token
+			},
+			credentials: 'include'
+		});
+		if (response.ok) {
+			return await response.json();
+		}
+		else if (response.headers.get('is-token-expired')) {
+			await refresh();
+			return await getRecipes();
+		}
+		throw 'Error';
+	}
+	async function getCategories() {
+		let response = await fetch(new URL('/categories', baseUrl).toString(), {
+			headers: {
+				'Content-Type': 'application/json',
+				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
+				'Authorization': 'Bearer ' + Alpine.store('jwt').token
+			},
+			credentials: 'include'
+		});
+		if (response.ok) {
+			return await response.json();
+		}
+		else if (response.headers.get('is-token-expired')) {
+			await refresh();
+			return await getCategories();
+		}
+		throw 'Error';
+	}
+	function formatRecipe(recipe) {
+		return {
+			id: recipe.id,
+			title: recipe.title,
+			ingredients: recipe.ingredients.split('\n'),
+			instructions: recipe.instructions.split('\n'),
+			categories: recipe.categories
+		};
+	}
+	async function postRecipe(recipe) {
+		let response = await fetch(new URL('/recipes', baseUrl).toString(), {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
+				'Authorization': 'Bearer ' + Alpine.store('jwt').token
+			},
+			credentials: 'include',
+			body: JSON.stringify(recipe)
+		});
+		if (response.ok) {
+			Swal.fire({
+				text: `Successfully created recipe ${recipe.title}`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'success',
+				timer: 1700
+			});
+		}
+		else if (response.headers.get('is-token-expired')) {
+			await refresh();
+			await postRecipe(recipe);
+		}
+		else {
+			Swal.fire({
+				text: `Failed to create recipe ${recipe.title}`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'error',
+				timer: 1700
+			});
+		}
+	}
+	async function postCategory(category) {
+		let response = await fetch(new URL(`/categories?category=${category}`, baseUrl).toString(), {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
+				'Authorization': 'Bearer ' + Alpine.store('jwt').token
+			},
+			credentials: 'include'
+		});
+		if (response.ok) {
+			Swal.fire({
+				text: `Successfully created category ${category}`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'success',
+				timer: 1700
+			});
+		}
+		else if (response.headers.get('is-token-expired')) {
+			await refresh();
+			await postCategory(category);
+		}
+		else {
+			Swal.fire({
+				text: `Failed to create category ${category}`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'error',
+				timer: 1700
+			});
+		}
+	}
+	async function putRecipe(recipe) {
+		let response = await fetch(new URL(`/recipes/${recipe.id}`, baseUrl).toString(), {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
+				'Authorization': 'Bearer ' + Alpine.store('jwt').token
+			},
+			credentials: 'include',
+			body: JSON.stringify(recipe)
+		});
+		if (response.ok) {
+			Swal.fire({
+				text: `Successfully edited recipe ${recipe.title}`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'success',
+				timer: 1700
+			});
+		}
+		else if (response.headers.get('is-token-expired')) {
+			await refresh();
+			await putRecipe(recipe);
+		}
+		else {
+			Swal.fire({
+				text: `Failed to edit recipe ${recipe.title}`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'error',
+				timer: 1700
+			});
+		}
+	}
+	async function putCategory(category, editedCategory) {
+		let response = await fetch(new URL(`/categories/${category}?editedcategory=${editedCategory}`, baseUrl).toString(), {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
+				'Authorization': 'Bearer ' + Alpine.store('jwt').token
+			},
+			credentials: 'include'
+		});
+		if (response.ok) {
+			Swal.fire({
+				text: `Successfully edited category ${category}`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'success',
+				timer: 1700
+			});
+		}
+		else if (response.headers.get('is-token-expired')) {
+			await refresh();
+			await putCategory(category, editedCategory);
+		}
+		else {
+			Swal.fire({
+				text: `Failed to edit category ${category}`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'error',
+				timer: 1700
+			});
+		}
+	}
+	async function deleteRecipe(recipe) {
+		let response = await fetch(new URL(`/recipes/${recipe.id}`, baseUrl).toString(), {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
+				'Authorization': 'Bearer ' + Alpine.store('jwt').token
+			},
+			credentials: 'include'
+		});
+		if (response.ok) {
+			Swal.fire({
+				text: `Successfully deleted recipe ${recipe.title}`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'success',
+				timer: 1700
+			});
+		}
+		else if (response.headers.get('is-token-expired')) {
+			await refresh();
+			await deleteRecipe(recipe);
+		}
+		else {
+			Swal.fire({
+				text: `Failed to delete recipe ${recipe.title}`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'error',
+				timer: 1700
+			});
+		}
+	}
+	async function deleteCategory(category) {
+		let response = await fetch(new URL(`/categories/${category}`, baseUrl).toString(), {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
+				'Authorization': 'Bearer ' + Alpine.store('jwt').token
+			},
+			credentials: 'include'
+		});
+		if (response.ok) {
+			Swal.fire({
+				text: `Successfully deleted category ${category}`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'success',
+				timer: 1700
+			});
+		}
+		else if (response.headers.get('is-token-expired')) {
+			await refresh();
+			await deleteCategory(category);
+		}
+		else {
+			Swal.fire({
+				text: `Failed to delete category ${category}`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'error',
+				timer: 1700
+			});
+		}
+	}
+</script>
