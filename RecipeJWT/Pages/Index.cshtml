@@ -5,9 +5,8 @@
 @{
 	ViewData["Title"] = "Yumyums";
 }
-
-
-@* Register *@
+<body style="background-image: url('../images/jeremy-bezanger-u_bQ_vHqAYM-unsplash.jpg'); background-repeat:no-repeat; background-size:cover;"/>
+@*Register *@
 <div x-show="$store.tab == 'register'"
 	 x-data="{username: '', password: ''}">
 	<form x-on:submit.prevent="await register(username, password);">
@@ -74,89 +73,93 @@
 @* Recipes Tab *@
 <div x-show="$store.tab == 'recipes'">
 	<div class="container d-flex justify-content-between align-items-center my-4">
-		<h2>All Recipes</h2>
+		<h2 style="color:dimgray">All Recipes</h2>
 		<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createRecipeModal">
 			Add a Recipe
 		</button>
 	</div>
 
-	@* Recipe Cards *@
 	<div x-data="{recipes: []}"
 		 x-effect="recipes = await $store.recipes;"
 		 x-cloak
-		 class="row row-cols-1 row-cols-xl-2 g-4 pb-5">
+		 class="row row-cols-auto justify-content-center g-4 mx-5 d-flex flex-column mb-3">
 		<template x-for="recipe in recipes">
-			<div class="col">
+			<div class="col w-100 ">
 				<div class="card">
-					<div class="card-body">
-
-						<h5 class="card-title text-center" x-text="recipe.title"></h5>
-
-						<template x-for="category in recipe.categories">
-							<span class="badge bg-success mb-2 mx-1" x-text="category"></span>
-						</template>
-
-						<div class="accordion">
-
-							@* Ingredients *@
-							<div class="accordion-item">
-								<h2 class="accordion-header">
-									<button x-data class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#Ingredients' + recipe.id" aria-expanded="true" :aria-controls="'Ingredients' + recipe.id">
-										Ingredients
-									</button>
-								</h2>
-								<div x-data :id="'Ingredients' + recipe.id" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingOne">
-									<div class="accordion-body">
-										<ul>
-											<template x-for="ingredient in recipe.ingredients">
-
-												<li x-text="ingredient"></li>
-
-											</template>
-										</ul>
-									</div>
-								</div>
-							</div>
-
-							@* Instructions *@
-							<div class="accordion-item">
-								<h2 class="accordion-header">
-									<button x-data class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#Instructions' + recipe.id" aria-expanded="true" :aria-controls="'Instructions' + recipe.id">
-										Instructions
-									</button>
-								</h2>
-								<div x-data :id="'Instructions' + recipe.id" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingOne">
-									<div class="accordion-body">
-										<ul>
-											<template x-for="instruction in recipe.instructions">
-
-												<li x-text="instruction"></li>
-
-											</template>
-										</ul>
-									</div>
-								</div>
-							</div>
-
-						</div>
+					<div class="card-body d-flex justify-content-between  align-items-center">
+						<button class="btn c-category-details-div card-title" data-bs-toggle="modal" :data-bs-target="'#detailsRecipeModal' + recipe.id" x-text="recipe.title" style="font-weight : bold"></button >
+							
 
 						@* Buttons *@
 						<div class="text-center mt-3">
 							<div class="btn-group">
-								<button class="btn btn-primary" data-bs-toggle="modal" :data-bs-target="'#editRecipeModal' + recipe.id">
-									<i class="bi bi-pencil-square"></i>
+								<button class="btn c-category-edit-div" data-bs-toggle="modal" :data-bs-target="'#editRecipeModal' + recipe.id">
+									<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+										  <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+									      <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+									 </svg>
 								</button>
-								<button class="btn btn-danger" data-bs-toggle="modal" :data-bs-target="'#DeleteModal' + recipe.id">
-									<i class="bi bi-trash"></i>
+								<button class="btn c-category-remove-div" data-bs-toggle="modal" :data-bs-target="'#DeleteModal' + recipe.id">
+									<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+									    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+									</svg>
+								</button>
+								<button class="btn c-category-details-div" data-bs-toggle="modal" :data-bs-target="'#detailsRecipeModal' + recipe.id">
+									<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-info-square" viewBox="0 0 16 16">
+										<path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+										<path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+									</svg>
 								</button>
 							</div>
 						</div>
 
+						@*Recipe Details Modal*@
+						 <div class="modal fade modal-dialog-scrollable" :id="'detailsRecipeModal'+recipe.id" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-scrollable modal-lg ">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Recipe details</h5>
+											<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form style="text-align:left;overflow-x: hidden;overflow-y: auto;">
+                                            <div class="modal-body">
+                                                <div class="mb-3 ">
+                                                    <label for="title" class="col-2 col-form-label fw-bold " style="width : 100%; ">Title</label>
+                                                    <input id="title" readonly="readonly" class="border-0" x-model="recipe.title">
+                                                </div>
+                                                <div class="my-3 row">
+                                                    <label for="ingred" style="width : 100%; " class="col-form-label col-2 fw-bold ">Ingredients</label>
+                                                    <template x-for="ingredients in recipe.ingredients">
+                                                        <li name="ingred" x-text="ingredients"></li>
+                                                    </template>
+                                                </div>
+                                                <div class="my-3 row">
+                                                    <label for="instruc" style="width : 100%; " class="col-form-label col-2 fw-bold ">Instructions</label>
+                                                    <template x-for="instructions in recipe.instructions">
+                                                        <li name="instruc" x-text="instructions"></li>
+                                                    </template>
+                                                </div>
+                                                <div class="my-3 row">
+                                                    <label for="categ" class="col-form-label col-2 fw-bold " style="width : 100%; ">Categories</label>
+                                                    <template x-for="category in recipe.categories">
+                                                        <li name="categ" x-text="category"></li>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </form>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn c-cancel-button" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
 						@* Delete Modal *@
+
 						<div class="modal fade" :id=" 'DeleteModal'+recipe.id " tabindex="-1">
 							<div class="modal-dialog">
 								<div class="modal-content text-center">
-									<form x-on:submit.prevent="await deleteRecipe(recipe); $store.recipes = await getRecipes();">
+									<form x-on:submit.prevent="await deleteRecipe(recipe); $store.recipes = await getRecipes()">
 										<div class="modal-header">
 											<h5 class="modal-title">Are you sure you want to delete this recipe?</h5>
 											<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -244,16 +247,16 @@
 </div>
 
 @* Category Tab *@
-<div x-show="$store.tab == 'categories'">
+<div x-show="$store.tab=='categories'">
 	<div class="container d-flex justify-content-between align-items-center my-4">
-		<h2>All Categories</h2>
-		<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+		<h2 style="color:dimgray">All Categories</h2>
+		<button type="button" class="btn c-Add-button" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
 			Add a Category
 		</button>
 	</div>
 
-	@* Category Cards *@
-	<div class="row row-cols-auto justify-content-center g-4 mx-5"
+@* Category Cards *@
+	<div class="row row-cols-auto justify-content-center g-4 mx-5 d-flex flex-column mb-3"
 		 x-data="{ categories: []}"
 		 x-effect="categories = await $store.categories;"
 		 x-cloak>
@@ -261,14 +264,19 @@
 		<template x-for="category in categories">
 			<div class="col">
 				<div class="card text-center">
-					<div class="card-body">
+					<div class="card-body d-flex justify-content-between">
 						<h5 class="card-title" x-text="category"></h5>
 						<div class="btn-group">
-							<button class="btn btn-primary" data-bs-toggle="modal" :data-bs-target="'#editCategoryModal' + category.replace(/\s/g, '');">
-								<i class="bi bi-pencil-square"></i>
+							<button class="btn " data-bs-toggle="modal" :data-bs-target="'#editCategoryModal' + category.replace(/\s/g, '');">
+								<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+					      <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+						<path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+					 </svg>
 							</button>
-							<button class="btn btn-danger" data-bs-toggle="modal" :data-bs-target="'#deleteCategoryModal' + category.replace(/\s/g, '');">
-								<i class="bi bi-trash"></i>
+							<button class="btn" data-bs-toggle="modal" :data-bs-target="'#deleteCategoryModal' + category.replace(/\s/g, '');">
+								<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+					     <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+					</svg>
 							</button>
 						</div>
 					</div>
@@ -286,9 +294,9 @@
 									</div>
 									<div class="modal-body">
 										<div class="my-3 row">
-											<label :for="'editCategoryTitle' + category.replace(/\s/g, '');" class="col-2 col-form-label">Title</label>
+											<label for="editCategoryTitle" class="col-2 col-form-label">Title</label>
 											<div class="col-10">
-												<input :id="'editCategoryTitle' + category.replace(/\s/g, '');" x-model="editedCategory" class="form-control" required />
+												<input id="editCategoryTitle" x-model="editedCategory" class="form-control" required />
 											</div>
 										</div>
 									</div>
@@ -400,7 +408,7 @@
 <div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content">
-			<form x-on:submit.prevent="await postCategory(category); $el.reset(); category = ''; await updateDB();"
+			<form x-on:submit.prevent="await postCategory(category); console.log($el); $el.reset(); category = ''; await updateDB();"
 				  x-data="{category: ''}">
 				<div class="modal-header">
 					<h5 class="modal-title" id="createCategoryModalLabel">What is the new category</h5>
@@ -424,6 +432,7 @@
 	</div>
 </div>
 
+
 <script type="text/javascript">
 	const baseUrl = '@Configuration["BaseUrl"]';
 	document.addEventListener('alpine:init', () => {
@@ -433,11 +442,12 @@
 		Alpine.store('categories');
 		Alpine.store('tab', 'login');
 	});
+
 	async function register(username, password) {
 		try {
 			let response = await fetch(new URL('/register', baseUrl).toString(), {
 				method: 'POST',
-				credentials: 'include',
+				credentials: 'same-origin',
 				headers: {
 					'Content-Type': 'application/json'
 				},
@@ -475,7 +485,8 @@
 		try {
 			let response = await fetch(new URL('/login', baseUrl).toString(), {
 				method: 'POST',
-				credentials: 'include',
+				mode:"cors",
+				credentials: 'same-origin',
 				headers: {
 					'Content-Type': 'application/json'
 				},
@@ -512,7 +523,7 @@
 	async function refresh() {
 		let response = await fetch(new URL('/refresh', baseUrl).toString(), {
 			method: 'POST',
-			credentials: 'include',
+			credentials: 'same-origin',
 			headers: {
 				'Content-Type': 'application/json'
 			},
@@ -532,10 +543,11 @@
 	async function getToken() {
 		let response = await fetch(new URL('/antiforgery/token', baseUrl).toString(), {
 			method: "GET",
+			credentials: 'same-origin',
 			headers: {
 				'Authorization': 'Bearer ' + Alpine.store('jwt').token
 			},
-			credentials: 'include'
+			
 		});
 		if (response.ok) {
 			return document.cookie
@@ -545,31 +557,45 @@
 		}
 	}
 	async function getRecipes() {
-		let response = await fetch(new URL('/recipes', baseUrl).toString(), {
-			headers: {
-				'Content-Type': 'application/json',
-				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
-				'Authorization': 'Bearer ' + Alpine.store('jwt').token
-			},
-			credentials: 'include'
-		});
-		if (response.ok) {
-			return await response.json();
+        try {
+            let response = await fetch(new URL('/recipes', baseUrl).toString(), {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
+                    'Authorization': 'Bearer ' + Alpine.store('jwt').token
+                },
+                credentials: 'same-origin'
+            });
+
+            if (response.ok) {
+                return await response.json();
+            }
+            else if (response.headers.get('is-token-expired')) {
+                await refresh();
+                return await getRecipes();
+            }
+        }
+       catch (error) {
+			Swal.fire({
+				text: `Failed to login`,
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				icon: 'error',
+				timer: 1700
+			});
 		}
-		else if (response.headers.get('is-token-expired')) {
-			await refresh();
-			return await getRecipes();
-		}
-		throw 'Error';
+		
 	}
 	async function getCategories() {
-		let response = await fetch(new URL('/categories', baseUrl).toString(), {
+		debugger
+		let response = await fetch(new URL('/category', baseUrl).toString(), {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
 				'Authorization': 'Bearer ' + Alpine.store('jwt').token
 			},
-			credentials: 'include'
+			credentials: 'same-origin'
 		});
 		if (response.ok) {
 			return await response.json();
@@ -597,7 +623,7 @@
 				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
 				'Authorization': 'Bearer ' + Alpine.store('jwt').token
 			},
-			credentials: 'include',
+			credentials: 'same-origin',
 			body: JSON.stringify(recipe)
 		});
 		if (response.ok) {
@@ -626,14 +652,14 @@
 		}
 	}
 	async function postCategory(category) {
-		let response = await fetch(new URL(`/categories?category=${category}`, baseUrl).toString(), {
+		let response = await fetch(new URL(`/category?category=${category}`, baseUrl).toString(), {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
 				'Authorization': 'Bearer ' + Alpine.store('jwt').token
 			},
-			credentials: 'include'
+			credentials: 'same-origin'
 		});
 		if (response.ok) {
 			Swal.fire({
@@ -661,6 +687,7 @@
 		}
 	}
 	async function putRecipe(recipe) {
+		debugger
 		let response = await fetch(new URL(`/recipes/${recipe.id}`, baseUrl).toString(), {
 			method: 'PUT',
 			headers: {
@@ -668,7 +695,7 @@
 				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
 				'Authorization': 'Bearer ' + Alpine.store('jwt').token
 			},
-			credentials: 'include',
+			credentials: 'same-origin',
 			body: JSON.stringify(recipe)
 		});
 		if (response.ok) {
@@ -697,14 +724,14 @@
 		}
 	}
 	async function putCategory(category, editedCategory) {
-		let response = await fetch(new URL(`/categories/${category}?editedcategory=${editedCategory}`, baseUrl).toString(), {
+		let response = await fetch(new URL(`/category/${category}?editedcategory=${editedCategory}`, baseUrl).toString(), {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
 				'Authorization': 'Bearer ' + Alpine.store('jwt').token
 			},
-			credentials: 'include'
+			credentials: 'same-origin'
 		});
 		if (response.ok) {
 			Swal.fire({
@@ -732,14 +759,16 @@
 		}
 	}
 	async function deleteRecipe(recipe) {
+		debugger
 		let response = await fetch(new URL(`/recipes/${recipe.id}`, baseUrl).toString(), {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
-				'Authorization': 'Bearer ' + Alpine.store('jwt').token
+				'Authorization': 'Bearer ' + Alpine.store('jwt').token,
+				'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
 			},
-			credentials: 'include'
+			credentials: 'same-origin'
 		});
 		if (response.ok) {
 			Swal.fire({
@@ -767,14 +796,14 @@
 		}
 	}
 	async function deleteCategory(category) {
-		let response = await fetch(new URL(`/categories/${category}`, baseUrl).toString(), {
+		let response = await fetch(new URL(`/category/${category}`, baseUrl).toString(), {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-XSRF-TOKEN': Alpine.store('xsrfToken'),
 				'Authorization': 'Bearer ' + Alpine.store('jwt').token
 			},
-			credentials: 'include'
+			credentials: 'same-origin'
 		});
 		if (response.ok) {
 			Swal.fire({

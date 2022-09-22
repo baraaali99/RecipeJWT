@@ -1,1 +1,66 @@
-[]
+[
+  {
+    "Title": "American Steak",
+    "Id": "4a6e2f9f-f241-4ce3-bf33-888cdef70c6c",
+    "Ingredients": [
+      "8 pieces Beef Spareribs, cut across bone",
+      "1 Cup American Garden BBQ Sauce Original",
+      "\u00BD Tsp. American Garden Meat Tenderizer",
+      "2 Tbsp. BBQ Spice Seasoning",
+      "2 Tsp. American Garden US Mustard",
+      "1 Small Bunch Rosemary, chopped",
+      "2 Tbsp. Olive Oil",
+      "1 Tbsp. American Garden Lemon Juice",
+      "\u00BD Tsp. Brown Sugar",
+      "Salt-to-taste",
+      "Pepper-to-taste"
+    ],
+    "Instructions": [
+      "mix in American Garden\u2019s BBQ spice seasoning.",
+      "Mix BBQ sauce and meat tenderizer for astonishing taste. Pour over the marinate onto the meat.",
+      "let it soak for hours before grilling.",
+      "grill."
+    ],
+    "Categories": [
+      "American Food"
+    ]
+  },
+  {
+    "Title": "Mac And Cheese",
+    "Id": "3aa054df-4ac0-4ba9-a74e-dcc501aff550",
+    "Ingredients": [
+      "Mac",
+      "Milk",
+      "Chedder Cheese"
+    ],
+    "Instructions": [
+      "Cook elbow macaroni in the boiling water for 8 minutes.",
+      "Add Cheddar cheese and stir until melted, 2 to 4 minutes.",
+      "add milk to melted cheese",
+      "Drain macaroni and fold into cheese sauce until coated."
+    ],
+    "Categories": [
+      "Pasta Dishes",
+      "Italy"
+    ]
+  },
+  {
+    "Title": "Vanilla Milkshake",
+    "Id": "ea3075ce-0c7a-47b9-955f-2f4127f1a760",
+    "Ingredients": [
+      "2 cups vanilla Ice cream",
+      "1 cup whole milk",
+      "1 teaspoon vanilla"
+    ],
+    "Instructions": [
+      "blend ice cream, milk, vanilla",
+      "extract together in a blender until smooth",
+      "pour into glasses and serve",
+      "drink"
+    ],
+    "Categories": [
+      "Drinks",
+      "American Food"
+    ]
+  }
+]

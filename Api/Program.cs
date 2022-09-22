@@ -13,21 +13,19 @@ using System.Text.Json;
 using Jose;
 using Newtonsoft.Json;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc;
 
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
 // services
 builder.Services.AddCors(options =>
 {
-	options.AddPolicy("Cors Policy",
-		policy =>
-		{
-			policy
-				.WithOrigins(builder.Configuration["FrontendOrigin"])
-				.AllowAnyHeader()
-				.AllowAnyMethod()
-				.WithExposedHeaders("IS-TOKEN-EXPIRED")
-				.AllowCredentials();
-		});
+	options.AddPolicy(name: MyAllowSpecificOrigins,
+					  policy =>
+					  {
+						  policy.WithOrigins("https://localhost:7122").AllowAnyHeader()
+						  .AllowAnyMethod().AllowAnyOrigin();
+					  });
 });
 
 builder.Services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
@@ -87,7 +85,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-app.UseCors("Cors Policy");
+app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -203,7 +201,7 @@ Jwt? Refresh(Jwt jwt)
 }
 
 // user enpoint
-app.MapPost("/register", async (HttpContext context, IAntiforgery forgeryService, Client user) =>
+app.MapPost("/register", async (HttpContext context, IAntiforgery forgeryService, [FromBody] Client user) =>
 {
 	if (user.Name == String.Empty || user.Password == String.Empty || usersList.Exists(oldUser => oldUser.Name == user.Name))
 	{
@@ -276,13 +274,20 @@ app.MapPost("/refresh", async (Jwt jwt) =>
 // recipe endpoints
 app.MapGet("/recipes", [Authorize] async (HttpContext context, IAntiforgery forgeryService) =>
 {
-	await forgeryService.ValidateRequestAsync(context);
-	return Results.Ok(recipesList);
+	try
+	{
+		await forgeryService.IsRequestValidAsync(context);
+		return Results.Ok(recipesList);
+    }
+    catch(Exception ex)
+    {
+		return Results.BadRequest();
+    }
 });
 
-app.MapGet("/recipes/{id}", [Authorize] async (Guid id, HttpContext context, IAntiforgery forgeryService) =>
+app.MapGet("/recipes/{id}", [Authorize] async ([FromBody]Guid id, HttpContext context, IAntiforgery forgeryService) =>
 {
-	await forgeryService.ValidateRequestAsync(context);
+	await forgeryService.IsRequestValidAsync(context);
 	if (recipesList.Find(recipe => recipe.Id == id) is Recipe recipe)
 	{
 		return Results.Ok(recipe);
@@ -290,9 +295,9 @@ app.MapGet("/recipes/{id}", [Authorize] async (Guid id, HttpContext context, IAn
 	return Results.NotFound();
 });
 
-app.MapPost("/recipes", [Authorize] async (Recipe recipe, HttpContext context, IAntiforgery forgeryService) =>
+app.MapPost("/recipes", [Authorize] async ([FromBody] Recipe recipe, HttpContext context, IAntiforgery forgeryService) =>
 {
-	await forgeryService.ValidateRequestAsync(context);
+	await forgeryService.IsRequestValidAsync(context);
 	if (recipe.Title == String.Empty)
 	{
 		return Results.BadRequest();
@@ -304,21 +309,21 @@ app.MapPost("/recipes", [Authorize] async (Recipe recipe, HttpContext context, I
 	return Results.Created($"/recipes/{recipe.Id}", recipe);
 });
 
-app.MapDelete("/recipes/{id}", [Authorize] async (Guid id, HttpContext context, IAntiforgery forgeryService) =>
+app.MapDelete("/recipes/{id}", [Authorize]   async([FromRoute(Name = "id")] Guid id, HttpContext context, IAntiforgery forgeryService) =>
 {
-	await forgeryService.ValidateRequestAsync(context);
+	 await forgeryService.IsRequestValidAsync(context);
 	if (recipesList.Find(recipe => recipe.Id == id) is Recipe recipe)
 	{
 		recipesList.Remove(recipe);
-		await SaveAsync();
+		 SaveAsync();
 		return Results.Ok(recipe);
 	}
 	return Results.NotFound();
 });
 
-app.MapPut("/recipes/{id}", [Authorize] async (Recipe editedRecipe, HttpContext context, IAntiforgery forgeryService) =>
+app.MapPut("/recipes/{id}", [Authorize] async ([FromBody] Recipe editedRecipe, HttpContext context, IAntiforgery forgeryService) =>
 {
-	await forgeryService.ValidateRequestAsync(context);
+	await forgeryService.IsRequestValidAsync(context);
 	if (recipesList.Find(recipe => recipe.Id == editedRecipe.Id) is Recipe recipe)
 	{
 		recipesList.Remove(recipe);
@@ -333,13 +338,13 @@ app.MapPut("/recipes/{id}", [Authorize] async (Recipe editedRecipe, HttpContext 
 // category endpoints
 app.MapGet("/category", [Authorize] async (HttpContext context, IAntiforgery forgeryService) =>
 {
-	await forgeryService.ValidateRequestAsync(context);
+	await forgeryService.IsRequestValidAsync(context);
 	return Results.Ok(categoriesList);
 });
 
 app.MapPost("/category", [Authorize] async (string category, HttpContext context, IAntiforgery forgeryService) =>
 {
-	await forgeryService.ValidateRequestAsync(context);
+	await forgeryService.IsRequestValidAsync(context);
 	if (category == String.Empty || categoriesList.Contains(category))
 	{
 		return Results.BadRequest();
@@ -354,7 +359,7 @@ app.MapPost("/category", [Authorize] async (string category, HttpContext context
 
 app.MapDelete("/category/{category}", [Authorize] async (string category, HttpContext context, IAntiforgery forgeryService) =>
 {
-	await forgeryService.ValidateRequestAsync(context);
+	await forgeryService.IsRequestValidAsync(context);
 	if (category == String.Empty)
 	{
 		return Results.BadRequest();
@@ -374,28 +379,28 @@ app.MapDelete("/category/{category}", [Authorize] async (string category, HttpCo
 	return Results.Ok(category);
 });
 
-app.MapPut("/category/{category}", [Authorize] async (string category, string editedCategory, HttpContext context, IAntiforgery forgeryService) =>
+app.MapPut("/category/{oldCategory}", [Authorize] async ([FromRoute(Name = "oldCategory")] string oldCategory,  string editedCategory, HttpContext context, IAntiforgery forgeryService) =>
 {
-	await forgeryService.ValidateRequestAsync(context);
+	await forgeryService.IsRequestValidAsync(context);
 	if (editedCategory == String.Empty)
 	{
 		return Results.BadRequest();
 	}
 
-	if (!categoriesList.Contains(category))
+	if (!categoriesList.Contains(oldCategory))
 	{
 		return Results.NotFound();
 	}
 
-	categoriesList.Remove(category);
+	categoriesList.Remove(oldCategory);
 	categoriesList.Add(editedCategory);
 	categoriesList = categoriesList.OrderBy(o => o).ToList();
 
 	foreach (var recipe in recipesList)
 	{
-		if (recipe.Categories.Contains(category))
+		if (recipe.Categories.Contains(oldCategory))
 		{
-			recipe.Categories.Remove(category);
+			recipe.Categories.Remove(oldCategory);
 			recipe.Categories.Add(editedCategory);
 		}
 	}
